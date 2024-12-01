@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(layout='wide')
+st.set_page_config(page_title='Invoice Generator',page_icon='📝')
 
 menu = ['Register Staff','Staff Database','Staff File']
 
