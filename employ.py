@@ -6,7 +6,7 @@ st.set_page_config(layout='wide')
 menu = ['Register Staff','Staff Database','Staff File']
 
 choice = st.sidebar.selectbox('Menu',menu)
-st.sidebar.write(':orange[**Made By Jeida**] 😎')
+st.sidebar.write(':orange[**Made By eduSTEMlab**] 😎')
 
 df = pd.read_csv('employee.csv')
 user_id = 'USER' + str(len(df) + 1)
