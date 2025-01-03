@@ -24,6 +24,8 @@ import plotly.express as px #helps us to plot charts
 
 #CSV file is a text file that has all it's data separated by a comma (COMMA SEPARETED VALUES)
 
+st.set_page_config(page_title="Teacher's App", page_icon='📚')
+
 csvlink = 'scores.csv'
 readcsv = pd.read_csv(csvlink,dtype={'Average': str})
 
