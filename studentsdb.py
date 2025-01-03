@@ -190,7 +190,7 @@ if menu == 'Scores Charts':
 
 
 if menu == 'Search Student':
-    space1,space2,finder = st.columns([2,1,1.7])
+    space1,space2,finder = st.columns([2,1,2])
     with finder:
         st.subheader("Find Student's File")
         st.write("")
