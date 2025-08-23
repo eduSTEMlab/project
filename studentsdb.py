@@ -1,302 +1,154 @@
 import streamlit as st
 import time
+import pandas as pd
+import os
+import plotly.express as px
 
-# create an app for your friends on how much they know you or know something or general quiz
-# asks the user to enter his/her name on the questionnaire page
-# the questionnaire page can be arranged in 3 or more columns (use your own ideas(-radio - selecbox))
-# a button under after all to submit and this checks the right questions and add the scores and save the user score under the user name
+st.set_page_config(page_icon='📚',page_title='Fun Quiz')
 
+# -------------------------------------------
+# CSV file setup
+CSV_FILE = "quiz_results.csv"
+if not os.path.exists(CSV_FILE):
+    pd.DataFrame(columns=["Name", "Score"]).to_csv(CSV_FILE, index=False)
 
-if "current_page" not in st.session_state:
-    st.session_state.current_page = "start"
-    st.rerun()
-
-
+# -------------------------------------------
+# Session state setup
 if "score" not in st.session_state:
     st.session_state.score = 0
+if "name" not in st.session_state:
+    st.session_state.name = ""
+if "current_question" not in st.session_state:
+    st.session_state.current_question = "q1"
 
-# st.write(st.session_state)
-
+# -------------------------------------------
 def countdown():
-    x = 0
-    with st.spinner('Loading Next Page', show_time = True):
-        time.sleep(1)
+    time.sleep(0.5)
 
-def start():
-    st.title("Sam's Quizzes")
-    name = st.text_input("First, your name?")
-    if st.pills('a',['Start Quiz'],label_visibility='collapsed'):
+def save_results():
+    df = pd.read_csv(CSV_FILE)
+    new_entry = {
+        "Name": st.session_state.name,
+        "Score": st.session_state.score
+    }
+    df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
+    df.to_csv(CSV_FILE, index=False)
+
+# -------------------------------------------
+# Navigation Menu
+menu = st.sidebar.selectbox("📌 Menu", ["📝 Quiz", "📊 Results"])
+
+# -------------------------------------------
+def start_quiz():
+    st.title("📚 Fun Quiz For Kids")
+    name = st.text_input("Enter your name to start:")
+    if st.button("Start Quiz"):
         if name:
-            countdown()
-            st.session_state.current_page = "q1"
+            st.session_state.name = name
+            st.session_state.score = 0
+            st.session_state.current_question = "q1"
             st.rerun()
         else:
-            ('Name First Please..')
-            
+            st.warning("Please enter your name first.")
 
-                
-def q1():
-    st.info("Started Quiz!")
-    st.subheader("Question 1")
+# -------------------------------------------
+def question(num, question_text, options, correct, next_q, last=False):
+    st.subheader(f"Question {num}")
     st.divider()
-    q1 = st.radio("What function outputs to the user's screen?", ["Options:", "output()", "write()", "print()", "text()"])
-    if q1 != "Options:":
-        if st.button("Next Question"):
-            if q1 == "print()":
-                st.success("Correct answer!")
+    answer = st.pills(question_text, options, selection_mode="single", key=f"q{num}_ans")
+
+    if answer:
+        if st.button("Next Question" if not last else "Finish Quiz", key=f"btn_q{num}"):
+            if answer == correct:
+                st.success("✅ Correct!")
                 st.session_state.score += 1
-                countdown()
-                st.session_state.current_page = "q2"
-                st.rerun()
             else:
-                st.error("Wrong answer!")
-                countdown()
-                st.session_state.current_page = "q2"
-                st.rerun()
+                st.error(f"❌ Wrong! Correct was: {correct}")
 
-def q2():
-    st.subheader("Question 2")
-    st.divider()
-    q2 = st.radio("How do you add a module to your code?", ["Options:", "module()", "package.add", "use()", "import"])
-    if q2 != "Options:":
-        if st.button("Next Question"):
-            if q2 == "import":
-                st.success("Correct answer!")
-                st.session_state.score += 1
-                countdown()
-                st.session_state.current_page = "q3"
-                st.rerun()
-            else:
-                st.error("Wrong answer!")
-                countdown()
-                st.session_state.current_page = "q3"
-                st.rerun()
+            countdown()
+            st.session_state.current_question = next_q
+            if last:
+                save_results()
+            st.rerun()
 
-
-def q3():
-    st.subheader("Question 3")
-    st.divider()
-    q3 = st.radio("What is used to add a block comment in python?", ["Options:", "<!-- -->", "//", "'''", "+++"])
-    if q3 != "Options:":
-        if st.button("Next Question"):
-            if q3 == "'''":
-                st.success("Correct answer!")
-                st.session_state.score += 1
-                countdown()
-                st.session_state.current_page = "q4"
-                st.rerun()
-            else:
-                st.error("Wrong answer!")
-                countdown()
-                st.session_state.current_page = "q4"
-                st.rerun()
-
-
-def q4():
-    st.subheader("Question 4")
-    st.divider()
-    q4 = st.radio("What is the extension for a python file?", ["Options:", ".pth", ".py", ".pyt", ".python"])
-    if q4 != "Options:":
-        if st.button("Next Question"):
-            if q4 == ".py":
-                st.success("Correct answer!")
-                st.session_state.score += 1
-                countdown()
-                st.session_state.current_page = "q5"
-                st.rerun()
-            else:
-                st.error("Wrong answer!")
-                countdown()
-                st.session_state.current_page = "q5"
-                st.rerun()
-
-
-def q5():
-    st.subheader("Question 5")
-    st.divider()
-    q5 = st.radio("How do you ask the user for a piece of information?", ["Options:", "input()", "ask()", "question()", "answer()"])
-    if q5 != "Options:":
-        if st.button("Next Question"):
-            if q5 == "input()":
-                st.success("Correct answer!")
-                st.session_state.score += 1
-                countdown()
-                st.session_state.current_page = "q6"
-                st.rerun()
-            else:
-                st.error("Wrong answer!")
-                countdown()
-                st.session_state.current_page = "q6"
-                st.rerun()
-
-
-def q6():
-    st.subheader("Question 6")
-    st.divider()
-    q6 = st.radio("What stores information?", ["Options:", "box", "log", "store", "variable"])
-    if q6 != "Options:":
-        if st.button("Next Question"):
-            if q6 == "variable":
-                st.success("Correct answer!")
-                st.session_state.score += 1
-                countdown()
-                st.session_state.current_page = "q7"
-                st.rerun()
-            else:
-                st.error("Wrong answer!")
-                countdown()
-                st.session_state.current_page = "q7"
-                st.rerun()
-
-
-def q7():
-    st.subheader("Question 7")
-    st.divider()
-    q7 = st.radio("Who created python?", ["Options:", "Isaac Watts", "David Bazsucki", "Guido van Rossum", "Mike Wazowski"])
-    if q7 != "Options:":
-        if st.button("Next Question"):
-            if q7 == "Guido van Rossum":
-                st.success("Correct answer!")
-                st.session_state.score += 1
-                countdown()
-                st.session_state.current_page = "q8"
-                st.rerun()
-            else:
-                st.error("Wrong answer!")
-                countdown()
-                st.session_state.current_page = "q8"
-                st.rerun()
-
-
-def q8():
-    st.subheader("Question 8")
-    st.divider()
-    q8 = st.radio("What is '//' in python?", ["Options:", "Double Division", "Modulus", "Floor division", "Division"])
-    if q8 != "Options:":
-        if st.button("Next Question"):
-            if q8 == "Floor division":
-                st.success("Correct answer!")
-                st.session_state.score += 1
-                countdown()
-                st.session_state.current_page = "q9"
-                st.rerun()
-            else:
-                st.error("Wrong answer!")
-                countdown()
-                st.session_state.current_page = "q9"
-                st.rerun()
-
-
-def q9():
-    st.subheader("Question 9")
-    st.divider()
-    q9 = st.radio("What is the '%' operator in python?", ["Options:", "Modulus", "Exponential", "Floor Division", "Percentage"])
-    if q9 != "Options:":
-        if st.button("Next Question"):
-            if q9 == "Modulus":
-                st.success("Correct answer!")
-                st.session_state.score += 1
-                countdown()
-                st.session_state.current_page = "q10"
-                st.rerun()
-            else:
-                st.error("Wrong answer!")
-                countdown()
-                st.session_state.current_page = "q10"
-                st.rerun()
-
-
-def q10():
-    st.subheader("Question 10")
-    st.divider()
-    q10 = st.radio("All loops run forever", ["Options:", "True", "False"])
-    if q10 != "Options:":
-        if st.button("Next Question"):
-            if q10 == "False":
-                st.success("Correct answer!")
-                st.session_state.score += 1
-                countdown()
-                st.session_state.current_page = "q11"
-                st.rerun()
-            else:
-                st.error("Wrong answer!")
-                countdown()
-                st.session_state.current_page = "q11"
-                st.rerun()
-
-
-def q11():
-    st.subheader("Question 11")
-    st.divider()
-    q11 = st.radio("How many 'z' does this code output? \n\nx = 0 \n\nwhile x <= 5:\n\n   x += 1\n\n   print('z')", ["Options:", "7", "4", "6", "5"])
-    if q11 != "Options:":
-        if st.button("Next Question"):
-            if q11 == "6":
-                st.success("Correct answer!")
-                st.session_state.score += 1
-                countdown()
-                st.session_state.current_page = "q12"
-                st.rerun()
-            else:
-                st.error("Wrong answer!")
-                countdown()
-                st.session_state.current_page = "q12"
-                st.rerun()
-
-
-def q12():
-    st.subheader("Question 12")
-    st.divider()
-    q12 = st.radio("What type of programming language is python?", ["Options:", "Front end", "Back end", "Both", "Neither"])
-    if q12 != "Options:":
-        if st.button("Finish Quiz"):
-            if q12 == "Back end":
-                st.success("Correct answer!")
-                st.session_state.score += 1
-                countdown()
-                st.session_state.current_page = "finish"
-                st.rerun()
-            else:
-                st.error("Wrong answer!")
-                countdown()
-                st.session_state.current_page = "finish"
-                st.rerun()
-
-
+# -------------------------------------------
 def finish():
-    st.info(f"Congrats! You have finished Sam's python quiz.\n\n Your score was {st.session_state.score}/12\n\n Would you like to take another quiz??")
-    if st.button("Back to Homepage"):
-        st.session_state.score = 0
-        st.session_state.current_page = "start"
-        st.rerun()
-#--------------------------------------------------------------------------------------------------------------------#
-#--------------------------------------------------------------------------------------------------------------------#
+    st.success(f"🎉 Congrats {st.session_state.name}! Your final score is {st.session_state.score}/20")
+    st.info("👉 Check the 📊 Results page to see how everyone scored.")
 
-if st.session_state.current_page == "start":
-    start()
-if st.session_state.current_page == "q1":
-    q1()
-elif st.session_state.current_page == "q2":
-    q2()
-elif st.session_state.current_page == "q3":
-    q3()
-elif st.session_state.current_page == "q4":
-    q4()
-elif st.session_state.current_page == "q5":
-    q5()
-elif st.session_state.current_page == "q6":
-    q6()
-elif st.session_state.current_page == "q7":
-    q7()
-elif st.session_state.current_page == "q8":
-    q8()
-elif st.session_state.current_page == "q9":
-    q9()
-elif st.session_state.current_page == "q10":
-    q10()
-elif st.session_state.current_page == "q11":
-    q11()
-elif st.session_state.current_page == "q12":
-    q12()
-elif st.session_state.current_page == "finish":
-    finish()
+# -------------------------------------------
+def results_page():
+    st.title("📊 Quiz Results")
+
+    df = pd.read_csv(CSV_FILE)
+    if df.empty:
+        st.warning("No results yet.")
+        return
+
+
+    with st.expander("All Students' Scores"):
+        st.dataframe(df)
+
+    view = st.radio("Choose chart view:", ["Pie Chart", "Bar Chart"],horizontal=True)
+
+    if view == "Pie Chart":
+        fig = px.pie(df, values="Score", names="Name")
+        st.plotly_chart(fig, use_container_width=True)
+
+    elif view == "Bar Chart":
+        fig = px.bar(df, x="Name", y="Score")
+        st.plotly_chart(fig, use_container_width=True)
+
+# -------------------------------------------
+# 20 Mixed Reasoning Questions (Math, English, Science, Space, Computer)
+def q1(): question(1, "What is 15 + 7?", ["20", "21", "22", "23"], "22", "q2")
+def q2(): question(2, "Which planet is known as the Red Planet?", ["Earth", "Venus", "Mars", "Jupiter"], "Mars", "q3")
+def q3(): question(3, "Which one is a mammal?", ["Shark", "Dolphin", "Frog", "Lizard"], "Dolphin", "q4")
+def q4(): question(4, "Opposite of 'hot' is?", ["Warm", "Cold", "Cool", "Boil"], "Cold", "q5")
+def q5(): question(5, "Which key is used to erase letters on a computer?", ["Shift", "Enter", "Backspace", "Ctrl"], "Backspace", "q6")
+def q6(): question(6, "What is 9 × 8?", ["72", "81", "64", "69"], "72", "q7")
+def q7(): question(7, "The Sun rises in the?", ["North", "South", "East", "West"], "East", "q8")
+def q8(): question(8, "Which gas do humans need to breathe in?", ["Oxygen", "Carbon dioxide", "Hydrogen", "Nitrogen"], "Oxygen", "q9")
+def q9(): question(9, "What is the plural of 'child'?", ["Childs", "Children", "Childes", "Childrens"], "Children", "q10")
+def q10(): question(10, "Which device is used to print documents?", ["Monitor", "Printer", "Keyboard", "Mouse"], "Printer", "q11")
+def q11(): question(11, "What is 100 ÷ 4?", ["20", "25", "30", "40"], "25", "q12")
+def q12(): question(12, "Which is the largest planet?", ["Earth", "Mars", "Jupiter", "Saturn"], "Jupiter", "q13")
+def q13(): question(13, "Which part of the plant makes food?", ["Root", "Stem", "Leaf", "Flower"], "Leaf", "q14")
+def q14(): question(14, "Choose the correct spelling:", ["Enviroment", "Envirnment", "Environment", "Envaironment"], "Environment", "q15")
+def q15(): question(15, "Shortcut to copy text on computer?", ["Ctrl + P", "Ctrl + V", "Ctrl + C", "Ctrl + X"], "Ctrl + C", "q16")
+def q16(): question(16, "What is 45 − 19?", ["24", "25", "26", "27"], "26", "q17")
+def q17(): question(17, "Which galaxy do we live in?", ["Andromeda", "Whirlpool", "Milky Way", "Sombrero"], "Milky Way", "q18")
+def q18(): question(18, "Which organ pumps blood in the body?", ["Lungs", "Liver", "Heart", "Kidney"], "Heart", "q19")
+def q19(): question(19, "Past tense of 'go' is?", ["Goed", "Went", "Gone", "Go"], "Went", "q20")
+def q20(): question(20, "Binary numbers are made of?", ["0s and 1s", "1s and 2s", "2s and 3s", "5s and 10s"], "0s and 1s", "finish", last=True)
+
+# -------------------------------------------
+# Page Navigation
+if menu == "📝 Quiz":
+    if not st.session_state.name:
+        start_quiz()
+    else:
+        if st.session_state.current_question == "q1": q1()
+        elif st.session_state.current_question == "q2": q2()
+        elif st.session_state.current_question == "q3": q3()
+        elif st.session_state.current_question == "q4": q4()
+        elif st.session_state.current_question == "q5": q5()
+        elif st.session_state.current_question == "q6": q6()
+        elif st.session_state.current_question == "q7": q7()
+        elif st.session_state.current_question == "q8": q8()
+        elif st.session_state.current_question == "q9": q9()
+        elif st.session_state.current_question == "q10": q10()
+        elif st.session_state.current_question == "q11": q11()
+        elif st.session_state.current_question == "q12": q12()
+        elif st.session_state.current_question == "q13": q13()
+        elif st.session_state.current_question == "q14": q14()
+        elif st.session_state.current_question == "q15": q15()
+        elif st.session_state.current_question == "q16": q16()
+        elif st.session_state.current_question == "q17": q17()
+        elif st.session_state.current_question == "q18": q18()
+        elif st.session_state.current_question == "q19": q19()
+        elif st.session_state.current_question == "q20": q20()
+        elif st.session_state.current_question == "finish": finish()
+
+elif menu == "📊 Results":
+    results_page()
